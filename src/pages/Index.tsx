@@ -184,7 +184,7 @@ const Index = () => {
               <h1 className="text-5xl md:text-7xl font-bold mb-6 text-foreground" style={{ color: "#0f172a" }}>Synapsis</h1>
               <p className="text-xl md:text-2xl mb-8 text-muted-foreground">Bridging Biology & Technology</p>
               <p className="text-lg mb-12 text-foreground/80" style={{ color: "#0f172a" }}>
-                Synapsis, the official student association for Biological Science at BITS Pilani, Hyderabad Campus, where we explore the intersection of biology and technology.
+                Synapsis Hello, the official student association for Biological Science at BITS Pilani, Hyderabad Campus, where we explore the intersection of biology and technology.
               </p>
             </div>
           </div>
