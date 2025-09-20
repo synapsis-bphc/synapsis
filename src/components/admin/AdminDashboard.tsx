@@ -42,13 +42,13 @@ export function AdminDashboard({ user, userRoles, onLogout, isLoading }: AdminDa
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-1 py-2 sm:px-4 sm:py-4 md:px-8 md:py-8 pt-24">
-      <div className="container mx-auto space-y-6">
-        <Card className="shadow-lg">
+      <div className="container mx-auto space-y-6 pt-10">
+        <Card className="shadow-lg ">
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <CardTitle className="text-2xl font-bold">Admin Dashboard</CardTitle>
-                <p className="text-gray-600">Synapsis Club Management Portal</p>
+                <CardTitle className="text-2xl font-bold ">Admin Dashboard</CardTitle>
+                <p className="text-gray-600 pt-2">Synapsis Club Management Portal</p>
                 {user && <p className="text-sm text-gray-500 mt-1">Logged in as: {user.email}</p>}
               </div>
               <Button onClick={onLogout} variant="outline" className="w-full sm:w-auto">
