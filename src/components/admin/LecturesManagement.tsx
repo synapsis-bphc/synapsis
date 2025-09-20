@@ -253,16 +253,17 @@ export function LecturesManagement() {
           <CardContent>
             <form onSubmit={(e) => { e.preventDefault(); handleSaveLecture(); }} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2"><Label htmlFor="topic">Topic</Label><Input id="topic" value={formData.topic} onChange={(e) => setFormData({...formData, topic: e.target.value})} required /></div>
-                <div className="space-y-2"><Label htmlFor="speaker">Speaker Name</Label><Input id="speaker" value={formData.speaker} onChange={(e) => setFormData({...formData, speaker: e.target.value})} required /></div>
+                <div className="space-y-2"><Label htmlFor="topic">Topic<span className="text-red-500">*</span></Label><Input id="topic" value={formData.topic} onChange={(e) => setFormData({...formData, topic: e.target.value})} required /></div>
+                <div className="space-y-2"><Label htmlFor="speaker">Speaker Name<span className="text-red-500">*</span></Label><Input id="speaker" value={formData.speaker} onChange={(e) => setFormData({...formData, speaker: e.target.value})} required /></div>
                 <div className="space-y-2"><Label htmlFor="speaker_title">Speaker Title</Label><Input id="speaker_title" value={formData.speaker_title} onChange={(e) => setFormData({...formData, speaker_title: e.target.value})} placeholder="e.g., Professor of Biology" /></div>
                 <div className="space-y-2"><Label htmlFor="speaker_profile_url">Speaker Profile URL</Label><Input id="speaker_profile_url" value={formData.speaker_profile_url} onChange={(e) => setFormData({...formData, speaker_profile_url: e.target.value})} placeholder="https://linkedin.com/in/..." /></div>
-                <div className="space-y-2"><Label htmlFor="date">Date</Label><Input id="date" type="date" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} required /></div>
-                <div className="space-y-2"><Label htmlFor="time">Time</Label><Input id="time" type="time" value={formData.time} onChange={(e) => setFormData({...formData, time: e.target.value})} required /></div>
-                <div className="space-y-2"><Label htmlFor="location">Location</Label><Input id="location" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} required /></div>
-                <div className="space-y-2"><Label htmlFor="type">Type</Label><Input id="type" value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value})} placeholder="Lecture, Workshop, etc." required /></div>
+                <div className="space-y-2"><Label htmlFor="date">Date<span className="text-red-500">*</span></Label><Input id="date" type="date" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} required /></div>
+                <div className="space-y-2"><Label htmlFor="time">Time<span className="text-red-500">*</span></Label><Input id="time" type="time" value={formData.time} onChange={(e) => setFormData({...formData, time: e.target.value})} required /></div>
+                <div className="space-y-2"><Label htmlFor="location">Location<span className="text-red-500">*</span></Label><Input id="location" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} required /></div>
+                <div className="space-y-2"><Label htmlFor="type">Type<span className="text-red-500">*</span></Label><Input id="type" value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value})} placeholder="Lecture, Workshop, etc." required /></div>
               </div>
-              <div className="space-y-2"><Label htmlFor="description">Description</Label><Textarea id="description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} required /></div>
+              <div className="space-y-2"><Label htmlFor="description">Description<span className="text-red-500">*</span></Label><Textarea id="description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} required /></div>
+              
               
               <div className="space-y-2">
                 <Label htmlFor="speaker_photo_url">Speaker Photo</Label>

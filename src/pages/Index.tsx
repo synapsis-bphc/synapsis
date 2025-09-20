@@ -367,6 +367,7 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
               {/* <ul className="space-y-2 text-primary-foreground/80"> */}
                 {/* <li><a href="https://synapsis-chat.vercel.app/" className="hover:text-primary-foreground transition-colors">Chat</a></li> */}
               {/* </ul> */}
+              <a className="text-lg font-semibold mb-4" href="mailto:bios@hyderabad.bits-pilani.ac.in">Feedback</a>
             </div>
             <div>
               <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
@@ -385,7 +386,7 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
           </div>
           <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center space-y-2">
             <p className="text-primary-foreground/60">© {new Date().getFullYear()} Synapsis . All rights reserved.</p>
-            <p className="text-primary-foreground/60 text-sm">Created by <a href="https://ranjit.cc" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/80 hover:text-primary-foreground underline">Ranjit Choudhary</a></p>
+            <p className="text-primary-foreground/60 text-sm">Made by Synapsis Team ❤️</p>
           </div>
         </div>
       </footer>
