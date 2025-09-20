@@ -116,28 +116,52 @@ export function EventsManagement() {
     }
   };
 
-  const handleSaveEvent = async () => {
-    try {
-      const eventDate = new Date(formData.date);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const is_upcoming = eventDate >= today;
-      const eventData = { ...formData, is_upcoming };
+const handleSaveEvent = async () => {
+  try {
+    const eventDate = new Date(formData.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const is_upcoming = eventDate >= today;
 
-      if (editingEvent) {
-        await supabase.from("events").update(eventData).eq("id", editingEvent.id).throwOnError();
-        toast({ title: "Success", description: "Event updated." });
-      } else {
-        await supabase.from("events").insert(eventData).throwOnError();
-        toast({ title: "Success", description: "Event added." });
-      }
-      fetchEvents();
-      resetForm();
-    } catch (error) {
-      console.error("Error saving event:", error);
-      toast({ title: "Error", description: "Failed to save event.", variant: "destructive" });
+    // Build eventData, using empty strings for NOT NULL optional fields
+    const eventData: Record<string, any> = {
+      title: formData.title,
+      date: formData.date,
+      location: formData.location,
+      description: formData.description || "", // default to empty string
+      image_url: formData.image_url || "",    // default to empty string
+      is_upcoming,
+    };
+
+    if (formData.time) eventData.time = formData.time; // only include if user entered
+
+    if (editingEvent) {
+      await supabase
+        .from("events")
+        .update(eventData)
+        .eq("id", editingEvent.id)
+        .throwOnError();
+
+      toast({ title: "Success", description: "Event updated." });
+    } else {
+      await supabase.from("events").insert(eventData).throwOnError();
+      toast({ title: "Success", description: "Event added." });
     }
-  };
+
+    fetchEvents();
+    resetForm();
+  } catch (error: any) {
+    console.error("Error saving event:", error.message || error);
+    toast({
+      title: "Error",
+      description: error.message || "Failed to save event.",
+      variant: "destructive",
+    });
+  }
+};
+
+
+
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this event?")) return;
