@@ -335,7 +335,7 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
         </div>
       </section>
 
-      {/* Instagram Section */}
+      {/* Instagram Section  */}
       <section
         id="instagram"
         className="py-20 bg-cover bg-center"
