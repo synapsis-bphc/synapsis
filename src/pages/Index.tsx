@@ -386,7 +386,7 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
           </div>
           <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center space-y-2">
             <p className="text-primary-foreground/60">© {new Date().getFullYear()} Synapsis . All rights reserved.</p>
-            <p className="text-primary-foreground/60 text-sm">Made by Synapsis Team ❤️</p>
+            <p className="text-primary-foreground/60 text-sm">Made by Synapsis Team </p>
           </div>
         </div>
       </footer>
