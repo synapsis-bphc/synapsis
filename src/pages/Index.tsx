@@ -208,7 +208,7 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
       </section>
 
       {/* Opportunities Section */}
-      <section id="opportunities" className="py-20">
+      {/* <section id="opportunities" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center text-center md:text-left mb-12">
             <div>
@@ -240,7 +240,7 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
             </div>
           ) : (<div className="text-center text-muted-foreground py-16"><p>No active projects yet! 🚧</p></div>)}
         </div>
-      </section>
+      </section> */}
 
       {/* Upcoming Lectures Section */}
       <section id="lectures" className="py-20 bg-muted/30">
@@ -372,7 +372,7 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
             <div>
               <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
               <ul className="space-y-2 text-primary-foreground/80">
-                <li><a href="/projects" className="hover:text-primary-foreground transition-colors">All Projects</a></li>
+                {/* <li><a href="/projects" className="hover:text-primary-foreground transition-colors">All Projects</a></li> */}
                 <li><a href="/seminars" className="hover:text-primary-foreground transition-colors">All Seminars</a></li>
                 <li><a href="/events" className="hover:text-primary-foreground transition-colors">All Events</a></li>
                 <li><a href="/all-members" className="hover:text-primary-foreground transition-colors">All Members</a></li>

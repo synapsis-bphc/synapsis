@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/button";
 const items = [
   { title: "Home", url: "#home", icon: Home, type: "anchor" },
   { title: "About", url: "#about", icon: Info, type: "anchor" },
-  { title: "Projects", url: "#opportunities", icon: Briefcase, type: "anchor" },
+  // { title: "Projects", url: "#opportunities", icon: Briefcase, type: "anchor" },
   { title: "Seminars", url: "#lectures", icon: Podcast, type: "anchor" },
   { title: "Events", url: "#events", icon: Calendar, type: "anchor" },
   { title: "Members", url: "#members", icon: Users, type: "anchor" },
