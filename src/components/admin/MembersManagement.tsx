@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Edit2, Trash2, Users, Upload } from "lucide-react";
+import { Plus, Edit2, Trash2, Users, Upload, FileSpreadsheet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useSessionStorageState from "@/hooks/useSessionStorageState"; // Import the new hook
+import Papa from 'papaparse';
 
 interface Member {
   id: string;
@@ -22,6 +23,7 @@ interface Member {
   is_current: boolean;
   bio?: string;
   member_id?: string;
+  created_at?: string;
 }
 
 const initialFormData = {
@@ -41,8 +43,11 @@ export function MembersManagement() {
   const [loading, setLoading] = useState(true);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [showRecentlyAdded, setShowRecentlyAdded] = useState(false);
+  const [recentTimestamp, setRecentTimestamp] = useState<string | null>(null);
   const { toast } = useToast();
   const formCardRef = useRef<HTMLDivElement>(null);
+  const csvInputRef = useRef<HTMLInputElement>(null);
 
 
   // Replace useState with our new custom hook
@@ -51,12 +56,24 @@ export function MembersManagement() {
 
   useEffect(() => {
     fetchMembers();
-  }, []);
+  }, [showRecentlyAdded, recentTimestamp]); // Refetch when filter changes
 
   const fetchMembers = async () => {
     try {
-      const { data, error } = await supabase.from("members").select("*").order("year", { ascending: false }).order("name");
+      let query = supabase.from("members").select("*");
+      
+      if (showRecentlyAdded && recentTimestamp) {
+        // For recent members, use exact timestamp match
+        query = query.eq("created_at", recentTimestamp);
+      }
+      
+      // Order results
+      query = query.order("year", { ascending: false }).order("name");
+
+      const { data, error } = await query;
       if (error) throw error;
+      
+      console.log("Fetched members:", data); // Debug log
       setMembers(data || []);
     } catch (error) {
       console.error("Error fetching members:", error);
@@ -70,6 +87,11 @@ export function MembersManagement() {
     setFormData(initialFormData);
     setEditingMember(null);
     setShowAddForm(false);
+  };
+
+  const clearRecentFilter = () => {
+    setShowRecentlyAdded(false);
+    setRecentTimestamp(null);
   };
 
   const handleEdit = (member: Member) => {
@@ -130,13 +152,22 @@ export function MembersManagement() {
 
   const handleSaveMember = async () => {
     try {
-      const memberData = { ...formData, year: Number(formData.year) };
+      const timestamp = new Date().toISOString();
+      const memberData = { 
+        ...formData, 
+        name: formData.name.trim(),
+        position: formData.position.trim(),
+        year: Number(formData.year),
+        created_at: editingMember ? undefined : timestamp // Only add timestamp for new members
+      };
       
       if (editingMember) {
         await supabase.from("members").update(memberData).eq("id", editingMember.id).throwOnError();
         toast({ title: "Success", description: "Member updated successfully." });
       } else {
         await supabase.from("members").insert(memberData).throwOnError();
+        setRecentTimestamp(timestamp);
+        setShowRecentlyAdded(true);
         toast({ title: "Success", description: "Member added successfully." });
       }
       fetchMembers();
@@ -159,13 +190,176 @@ export function MembersManagement() {
     }
   };
 
+  const handleBulkImport = () => {
+    csvInputRef.current?.click();
+  };
+
+  const validateMemberData = (data: any): Omit<Member, 'id'> => {
+    const currentYear = new Date().getFullYear();
+    
+    // Helper function to get value checking multiple possible keys
+    const getValue = (keys: string[]): string => {
+      for (const key of keys) {
+        if (data[key] !== undefined && data[key] !== null) {
+          return String(data[key]).trim();
+        }
+      }
+      return '';
+    };
+
+    // Check for required fields with various possible names
+    const name = getValue(['name', 'fullname', 'full_name', 'member_name']);
+    const position = getValue(['position', 'role', 'designation', 'title']);
+    const yearValue = getValue(['year', 'batch', 'passing_year', 'grad_year']);
+
+    return {
+      name: name,
+      position: position,
+      year: parseInt(yearValue) || currentYear,
+      photo_url: getValue(['photo_url', 'photo', 'image_url', 'image']),
+      linkedin_url: getValue(['linkedin_url', 'linkedin', 'linkedinurl']),
+      instagram_url: getValue(['instagram_url', 'instagram', 'instaurl']),
+      is_current: true,
+      bio: getValue(['bio', 'about', 'description']),
+      member_id: getValue(['member_id', 'memberid', 'id']),
+      created_at: new Date().toISOString()
+    };
+  };
+
+  const handleCSVUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        transformHeader: (header: string) => header.toLowerCase().trim(),
+        complete: async (results) => {
+          console.log("CSV Headers:", results.meta.fields);
+          console.log("CSV Parse Results:", results.data); // Debug log
+
+          if (results.data.length === 0) {
+            toast({ title: "Error", description: "The CSV file is empty", variant: "destructive" });
+            return;
+          }
+
+          const timestamp = new Date().toISOString();
+          const members = results.data
+            .filter((row: any) => {
+              if (!row || typeof row !== 'object') return false;
+              const validatedData = validateMemberData(row);
+              return validatedData.name && validatedData.position; // Check if required fields exist
+            })
+            .map((data: any) => {
+              const validatedData = validateMemberData(data);
+              console.log("Validated member data:", validatedData); // Debug log
+              return {
+                ...validatedData,
+                created_at: timestamp
+              };
+            });
+
+          if (members.length === 0) {
+            toast({ title: "Error", description: "No valid member data found in CSV", variant: "destructive" });
+            return;
+          }
+
+          try {
+            const { data, error } = await supabase
+              .from("members")
+              .insert(members)
+              .select() // Get the inserted records back
+              .throwOnError();
+            
+            if (error) throw error;
+
+            console.log("Inserted members:", data); // Debug log
+            
+            setRecentTimestamp(timestamp);
+            setShowRecentlyAdded(true);
+
+            toast({ 
+              title: "Success", 
+              description: `Successfully imported ${members.length} members. Click "Show Recently Added" to view them.` 
+            });
+            
+            await fetchMembers();
+          } catch (error) {
+            console.error("Error importing members:", error);
+            toast({ 
+              title: "Error", 
+              description: "Failed to import members. Please check the CSV format.", 
+              variant: "destructive" 
+            });
+          }
+        },
+        error: (error) => {
+          console.error("Error parsing CSV:", error);
+          toast({ 
+            title: "Error", 
+            description: "Failed to parse CSV file. Please check the file format.", 
+            variant: "destructive" 
+          });
+        }
+      });
+    } catch (error) {
+      console.error("Error reading CSV:", error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to read CSV file", 
+        variant: "destructive" 
+      });
+    }
+
+    // Clear the input
+    event.target.value = '';
+  };
+
   if (loading) return <div>Loading members...</div>;
+
+  const filteredMembers = members;
+  console.log('Current members:', members);
+  console.log('Show recently added:', showRecentlyAdded);
+  console.log('Recent timestamp:', recentTimestamp);
+  console.log('Filtered members:', filteredMembers);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold flex items-center gap-2"><Users className="h-5 w-5" /> Members Management</h3>
-        <Button onClick={() => setShowAddForm(true)}><Plus className="h-4 w-4 mr-2" /> Add Member</Button>
+        <div className="flex items-center gap-4">
+          <h3 className="text-lg font-semibold flex items-center gap-2"><Users className="h-5 w-5" /> Members Management</h3>
+          {recentTimestamp && (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="show-recent"
+                  checked={showRecentlyAdded}
+                  onCheckedChange={setShowRecentlyAdded}
+                />
+                <Label htmlFor="show-recent">Show Recently Added</Label>
+              </div>
+              {showRecentlyAdded && (
+                <Button variant="ghost" size="sm" onClick={clearRecentFilter}>
+                  Clear Filter
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleBulkImport}>
+            <FileSpreadsheet className="h-4 w-4 mr-2" /> Import CSV
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleCSVUpload}
+              className="hidden"
+              ref={csvInputRef}
+            />
+          </Button>
+          <Button onClick={() => setShowAddForm(true)}><Plus className="h-4 w-4 mr-2" /> Add Member</Button>
+        </div>
       </div>
 
       {showAddForm && (
