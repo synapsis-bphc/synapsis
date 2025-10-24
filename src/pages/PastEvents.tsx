@@ -29,7 +29,6 @@ export default function PastEvents() {
       const { data, error } = await supabase
         .from("events")
         .select("*")
-        .eq("is_upcoming", true)
         .order("date", { ascending: false });
 
       if (error) throw error;
@@ -46,7 +45,7 @@ export default function PastEvents() {
       <div className="container mx-auto space-y-8">
         <div className="text-center space-y-4">
           <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-            Past Events
+            ALL Events
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Relive the memorable moments from Synapsis Club's past events
