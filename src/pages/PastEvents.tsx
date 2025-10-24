@@ -29,7 +29,7 @@ export default function PastEvents() {
       const { data, error } = await supabase
         .from("events")
         .select("*")
-        .eq("is_upcoming", false)
+        .eq("is_upcoming", true)
         .order("date", { ascending: false });
 
       if (error) throw error;
