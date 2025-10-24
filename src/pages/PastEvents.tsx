@@ -68,7 +68,7 @@ export default function PastEvents() {
                 time={event.time}
                 location={event.location}
                 description={event.description}
-                type="Past Event"
+                type="Event"
                 image={event.image_url || "photo-1511795409834-ef04bbd61622"}
               />
             ))}
