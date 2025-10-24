@@ -28,6 +28,7 @@ const initialFormData = {
   location: "",
   description: "",
   image_url: "",
+  is_upcoming: true,
 };
 
 export function EventsManagement() {
@@ -78,6 +79,7 @@ export function EventsManagement() {
       location: event.location,
       description: event.description || "",
       image_url: event.image_url || "",
+      is_current: event.is_current,
     });
     setEditingEvent(event);
     setShowAddForm(true);
@@ -118,10 +120,10 @@ export function EventsManagement() {
 
 const handleSaveEvent = async () => {
   try {
-    const eventDate = new Date(formData.date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const is_upcoming = eventDate >= today;
+    //const eventDate = new Date(formData.date);
+    //const today = new Date();
+    //today.setHours(0, 0, 0, 0);
+    // const is_upcoming = eventDate >= today;
 
     // Build eventData, using empty strings for NOT NULL optional fields
     const eventData: Record<string, any> = {
@@ -194,6 +196,14 @@ const handleSaveEvent = async () => {
                 <div className="space-y-2"><Label htmlFor="date">Date<span className="text-red-500">*</span></Label><Input id="date" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required /></div>
                 <div className="space-y-2"><Label htmlFor="time">Time</Label><Input id="time" type="time" value={formData.time} onChange={(e) => setFormData({ ...formData, time: e.target.value })} /></div>
                 <div className="space-y-2"><Label htmlFor="location">Location<span className="text-red-500">*</span></Label><Input id="location" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} required /></div>
+               <div className="flex items-center space-x-2 pt-4">
+  <Switch
+    id="is_upcoming"
+    checked={formData.is_upcoming} // Assuming you add is_upcoming to formData state
+    onCheckedChange={(checked) => setFormData({ ...formData, is_upcoming: checked })}
+  />
+  <Label htmlFor="is_upcoming">Is Upcoming Event</Label>
+</div>
               </div>
               <div className="space-y-2"><Label htmlFor="description">Description</Label><Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
               <div className="space-y-2">
