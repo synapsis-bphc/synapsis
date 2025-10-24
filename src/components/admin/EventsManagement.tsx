@@ -79,7 +79,7 @@ export function EventsManagement() {
       location: event.location,
       description: event.description || "",
       image_url: event.image_url || "",
-      is_current: event.is_current,
+      is_upcoming: event.is_upcoming,
     });
     setEditingEvent(event);
     setShowAddForm(true);
@@ -132,7 +132,7 @@ const handleSaveEvent = async () => {
       location: formData.location,
       description: formData.description || "", // default to empty string
       image_url: formData.image_url || "",    // default to empty string
-      is_upcoming,
+      is_upcoming: formData.is_upcoming,
     };
 
     if (formData.time) eventData.time = formData.time; // only include if user entered
