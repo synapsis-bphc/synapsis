@@ -13,7 +13,7 @@ import CarnivalNavBar from '@/components/CarnivlNavBar';
 // Lazy load the page components
 const Index = lazy(() => import("./pages/Index"));
 const AllMembers = lazy(() => import("./pages/AllMembers"));
-const PastEvents = lazy(() => import("./pages/PastEvents"));
+const AllEvents = lazy(() => import("./pages/AllEvents"));
 const PastLectures = lazy(() => import("./pages/PastLectures"));
 const AdminPortal = lazy(() => import("./pages/AdminPortal"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -84,7 +84,7 @@ const App = () => {
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/all-members" element={<AllMembers />} />
-                    <Route path="/events" element={<PastEvents />} />
+                    <Route path="/events" element={<AllEvents />} />
                     <Route path="/seminars" element={<PastLectures />} />
                     <Route path="/projects" element={<Projects />} />
                     <Route path="/admin" element={<AdminPortal />} />

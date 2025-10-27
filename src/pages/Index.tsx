@@ -25,6 +25,18 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 
+// Helper function to format time (if you don't have it globally)
+const formatTime = (timeString: string | null | undefined): string => {
+  if (!timeString) return '';
+  const [hours, minutes] = timeString.split(':');
+  const h = parseInt(hours, 10);
+  const m = parseInt(minutes, 10);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const formattedHours = h % 12 || 12;
+  const formattedMinutes = m < 10 ? '0' + m : m;
+  return `${formattedHours}:${formattedMinutes} ${ampm}`;
+};
+
 const CurrentMembersDisplay = ({ members }: { members: any[] }) => {
   const [showAll, setShowAll] = useState(false);
   const positionsOrder = [
@@ -49,16 +61,16 @@ const CurrentMembersDisplay = ({ members }: { members: any[] }) => {
           {showAll && (
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {remainingMembers.map((member) => (
-                <DatabaseMemberCard 
-                  key={member.id} 
-                  name={member.name} 
-                  position={member.position} 
-                  year={member.year} 
-                  photoUrl={member.photo_url} 
-                  linkedinUrl={member.linkedin_url} 
-                  bio={member.bio} 
-                  isCurrent={true} 
-                  memberId={member.member_id} 
+                <DatabaseMemberCard
+                  key={member.id}
+                  name={member.name}
+                  position={member.position}
+                  year={member.year}
+                  photoUrl={member.photo_url}
+                  linkedinUrl={member.linkedin_url}
+                  bio={member.bio}
+                  isCurrent={true}
+                  memberId={member.member_id}
                   instagramUrl={member.instagram_url}
                 />
               ))}
@@ -99,7 +111,7 @@ const Index = () => {
         const cachedData = localStorage.getItem(CACHE_KEY);
         if (cachedData) {
           const { timestamp, data } = JSON.parse(cachedData);
-          
+
           if (timestamp >= serverLastUpdated) {
             setCurrentDatabaseMembers(data.currentDatabaseMembers || []);
             setUpcomingDatabaseLectures(data.upcomingDatabaseLectures || []);
@@ -112,7 +124,7 @@ const Index = () => {
       } catch (error) {
         console.error("Error checking cache or metadata:", error);
       }
-      
+
       try {
         const today = new Date().toISOString().split("T")[0];
 
@@ -266,7 +278,7 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
                   speakerProfileUrl={lecture.speaker_profile_url}
                   description={lecture.description}
                   date={lecture.date}
-                  time={lecture.time}
+                  time={formatTime(lecture.time)} // Use formatTime here
                   venue={lecture.location}
                 />
               ))}
@@ -287,9 +299,19 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
             </Link>
           </div>
           {upcomingDatabaseEvents.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+             // UPDATED CLASS HERE
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {upcomingDatabaseEvents.map((event) => (
-                <EventCard key={event.id} title={event.title} date={new Date(event.date).toLocaleDateString()} time={event.time || undefined} location={event.location} description={event.description} type="Event" image={event.image_url || "photo-1511795409834-ef04bbd61622"} />
+                <EventCard
+                    key={event.id}
+                    title={event.title}
+                    date={new Date(event.date).toLocaleDateString()}
+                    time={formatTime(event.time)} // Use formatTime here
+                    location={event.location}
+                    description={event.description}
+                    type="Upcoming" // Changed type
+                    image={event.image_url} // Removed fallback here, handled in EventCard
+                />
               ))}
             </div>
           ) : (<div className="text-center text-muted-foreground py-16"><p>No upcoming events scheduled at the moment.</p></div>)}
@@ -315,7 +337,7 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
       <section id="gallery" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12"><h2 className="text-4xl font-bold mb-4 text-foreground">Our Gallery</h2></div>
-          
+
           {galleryDatabaseItems.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {galleryDatabaseItems.map((item) => (

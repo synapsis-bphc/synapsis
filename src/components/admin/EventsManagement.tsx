@@ -202,7 +202,7 @@ const handleSaveEvent = async () => {
                   {formData.image_url && <img src={formData.image_url} alt="Preview" className="w-24 h-24 object-cover rounded" />}
                   <div className="flex-grow space-y-2">
                     <Input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} />
-                    <p className="text-sm text-muted-foreground">Recommended size: 600x400px</p>
+                    {/* <p className="text-sm text-muted-foreground">Recommended size: 600x400px</p> */}
                     {uploading && <p>Uploading...</p>}
                   </div>
                 </div>
