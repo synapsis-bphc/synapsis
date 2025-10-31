@@ -24,6 +24,7 @@ export type Database = {
           image_url: string | null
           is_upcoming: boolean
           location: string
+          registration_link: string | null // ADDED
           time: string | null
           title: string
           updated_at: string
@@ -36,6 +37,7 @@ export type Database = {
           image_url?: string | null
           is_upcoming?: boolean
           location: string
+          registration_link?: string | null // ADDED
           time?: string | null
           title: string
           updated_at?: string
@@ -48,6 +50,7 @@ export type Database = {
           image_url?: string | null
           is_upcoming?: boolean
           location?: string
+          registration_link?: string | null // ADDED
           time?: string | null
           title?: string
           updated_at?: string

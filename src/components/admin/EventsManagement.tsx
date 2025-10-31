@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit2, Trash2, Calendar, Upload } from "lucide-react";
+import { Plus, Edit2, Trash2, Calendar, Upload, Link } from "lucide-react"; // Added Link
 import { useToast } from "@/hooks/use-toast";
 import useSessionStorageState from "@/hooks/useSessionStorageState";
 
@@ -19,6 +19,7 @@ interface Event {
   description?: string;
   image_url?: string;
   is_upcoming: boolean;
+  registration_link?: string; // ADDED
 }
 
 const initialFormData = {
@@ -28,6 +29,7 @@ const initialFormData = {
   location: "",
   description: "",
   image_url: "",
+  registration_link: "", // ADDED
 };
 
 export function EventsManagement() {
@@ -78,6 +80,7 @@ export function EventsManagement() {
       location: event.location,
       description: event.description || "",
       image_url: event.image_url || "",
+      registration_link: event.registration_link || "", // ADDED
     });
     setEditingEvent(event);
     setShowAddForm(true);
@@ -131,6 +134,7 @@ const handleSaveEvent = async () => {
       description: formData.description || "", // default to empty string
       image_url: formData.image_url || "",    // default to empty string
       is_upcoming,
+      registration_link: formData.registration_link || null, // ADDED (use null for empty)
     };
 
     if (formData.time) eventData.time = formData.time; // only include if user entered
@@ -194,6 +198,21 @@ const handleSaveEvent = async () => {
                 <div className="space-y-2"><Label htmlFor="date">Date<span className="text-red-500">*</span></Label><Input id="date" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required /></div>
                 <div className="space-y-2"><Label htmlFor="time">Time</Label><Input id="time" type="time" value={formData.time} onChange={(e) => setFormData({ ...formData, time: e.target.value })} /></div>
                 <div className="space-y-2"><Label htmlFor="location">Location<span className="text-red-500">*</span></Label><Input id="location" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} required /></div>
+              </div>
+              {/* ADDED REGISTRATION LINK INPUT */}
+              <div className="space-y-2">
+                <Label htmlFor="registration_link">Registration Link</Label>
+                <div className="relative">
+                  <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    id="registration_link" 
+                    type="url" 
+                    placeholder="https://forms.gle/..." 
+                    value={formData.registration_link} 
+                    onChange={(e) => setFormData({ ...formData, registration_link: e.target.value })} 
+                    className="pl-9"
+                  />
+                </div>
               </div>
               <div className="space-y-2"><Label htmlFor="description">Description</Label><Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
               <div className="space-y-2">

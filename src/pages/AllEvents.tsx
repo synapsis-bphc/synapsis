@@ -15,7 +15,8 @@ interface Event {
   time?: string;
   location: string;
   image_url?: string;
-  is_upcoming: boolean; // Keep this field
+  is_upcoming: boolean;
+  registration_link?: string; // ADDED
 }
 
 // Helper function to format time (if you don't have it globally)
@@ -44,8 +45,7 @@ export default function AllEvents() { // Renamed component
     try {
       const { data, error } = await supabase
         .from("events")
-        .select("*")
-        // Removed the filter .eq("is_upcoming", false)
+        .select("id, title, description, date, time, location, image_url, is_upcoming, registration_link") // UPDATED select
         .order("date", { ascending: false }); // Keep ordering, newest first overall
 
       if (error) throw error;
@@ -69,7 +69,7 @@ export default function AllEvents() { // Renamed component
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-slate-900 dark:via-purple-950 dark:to-slate-900 p-4 md:p-8 pt-24"> {/* Adjusted background */}
-      <div className="container pt-8 mx-auto space-y-12">
+      <div className="container pt-10 mx-auto space-y-12">
         <div className="text-center space-y-4">
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
             Club Events
@@ -105,6 +105,7 @@ export default function AllEvents() { // Renamed component
                     description={event.description}
                     type="Upcoming"
                     image={event.image_url}
+                    registration_link={event.registration_link} // ADDED
                   />
                 ))}
               </div>
@@ -140,6 +141,7 @@ export default function AllEvents() { // Renamed component
                     description={event.description}
                     type="Past Event"
                     image={event.image_url}
+                    registration_link={event.registration_link} // ADDED (will be ignored by card logic)
                   />
                 ))}
               </div>

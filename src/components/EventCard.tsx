@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin } from "lucide-react";
+import { Calendar, Clock, MapPin, Ticket } from "lucide-react"; // Added Ticket
 import { cn } from "@/lib/utils";
 
 interface EventCardProps {
@@ -13,15 +13,16 @@ interface EventCardProps {
   location: string;
   description?: string;
   type: string;
-  image?: string; // This is the prop passed in
+  image?: string;
+  registration_link?: string; // ADDED
 }
 
 const DESCRIPTION_TRUNCATE_LENGTH = 150; // Adjust as needed
 
-export function EventCard({ title, date, time, location, description, type, image }: EventCardProps) {
+export function EventCard({ title, date, time, location, description, type, image, registration_link }: EventCardProps) {
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const isLongDescription = description && description.length > DESCRIPTION_TRUNCATE_LENGTH;
-  const imageSrc = image || '/favicon.png'; // Use original prop 'image' to check for default
+  const imageSrc = image || '/favicon.png'; // Determine image source once
   const hasSpecificImage = !!image; // Check if a specific image URL was provided
 
   return (
@@ -112,6 +113,16 @@ export function EventCard({ title, date, time, location, description, type, imag
               <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
               <span>{location}</span>
           </div>
+          
+          {/* ADDED REGISTRATION BUTTON */}
+          {type === "Upcoming" && registration_link && (
+            <Button asChild className="w-full mt-2 animate-pulse">
+              <a href={registration_link} target="_blank" rel="noopener noreferrer">
+                <Ticket className="h-4 w-4 mr-2" />
+                Register Now
+              </a>
+            </Button>
+          )}
         </CardFooter>
       </div>
     </Card>
