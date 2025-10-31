@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit2, Trash2, Calendar, Upload, Link } from "lucide-react"; // Added Link
+import { Plus, Edit2, Trash2, Calendar, Upload, Link } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useSessionStorageState from "@/hooks/useSessionStorageState";
 
@@ -19,7 +19,8 @@ interface Event {
   description?: string;
   image_url?: string;
   is_upcoming: boolean;
-  registration_link?: string; // ADDED
+  swd_link?: string; // ADDED
+  unifest_link?: string; // ADDED
 }
 
 const initialFormData = {
@@ -29,7 +30,8 @@ const initialFormData = {
   location: "",
   description: "",
   image_url: "",
-  registration_link: "", // ADDED
+  swd_link: "", // ADDED
+  unifest_link: "", // ADDED
 };
 
 export function EventsManagement() {
@@ -80,7 +82,8 @@ export function EventsManagement() {
       location: event.location,
       description: event.description || "",
       image_url: event.image_url || "",
-      registration_link: event.registration_link || "", // ADDED
+      swd_link: event.swd_link || "", // ADDED
+      unifest_link: event.unifest_link || "", // ADDED
     });
     setEditingEvent(event);
     setShowAddForm(true);
@@ -134,7 +137,8 @@ const handleSaveEvent = async () => {
       description: formData.description || "", // default to empty string
       image_url: formData.image_url || "",    // default to empty string
       is_upcoming,
-      registration_link: formData.registration_link || null, // ADDED (use null for empty)
+      swd_link: formData.swd_link || null, // ADDED
+      unifest_link: formData.unifest_link || null, // ADDED
     };
 
     if (formData.time) eventData.time = formData.time; // only include if user entered
@@ -199,21 +203,39 @@ const handleSaveEvent = async () => {
                 <div className="space-y-2"><Label htmlFor="time">Time</Label><Input id="time" type="time" value={formData.time} onChange={(e) => setFormData({ ...formData, time: e.target.value })} /></div>
                 <div className="space-y-2"><Label htmlFor="location">Location<span className="text-red-500">*</span></Label><Input id="location" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} required /></div>
               </div>
-              {/* ADDED REGISTRATION LINK INPUT */}
-              <div className="space-y-2">
-                <Label htmlFor="registration_link">Registration Link</Label>
-                <div className="relative">
-                  <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="registration_link" 
-                    type="url" 
-                    placeholder="https://forms.gle/..." 
-                    value={formData.registration_link} 
-                    onChange={(e) => setFormData({ ...formData, registration_link: e.target.value })} 
-                    className="pl-9"
-                  />
+              
+              {/* UPDATED REGISTRATION LINK SECTION */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="swd_link">SWD Link (Campus)</Label>
+                  <div className="relative">
+                    <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      id="swd_link" 
+                      type="url" 
+                      placeholder="https://swd.bits-pilani.ac.in/..." 
+                      value={formData.swd_link} 
+                      onChange={(e) => setFormData({ ...formData, swd_link: e.target.value })} 
+                      className="pl-9"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="unifest_link">Unifest Link (External)</Label>
+                  <div className="relative">
+                    <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      id="unifest_link" 
+                      type="url" 
+                      placeholder="https://unifest.org/..." 
+                      value={formData.unifest_link} 
+                      onChange={(e) => setFormData({ ...formData, unifest_link: e.target.value })} 
+                      className="pl-9"
+                    />
+                  </div>
                 </div>
               </div>
+
               <div className="space-y-2"><Label htmlFor="description">Description</Label><Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
               <div className="space-y-2">
                 <Label>Event Image</Label>
@@ -221,7 +243,7 @@ const handleSaveEvent = async () => {
                   {formData.image_url && <img src={formData.image_url} alt="Preview" className="w-24 h-24 object-cover rounded" />}
                   <div className="flex-grow space-y-2">
                     <Input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} />
-                    {/* <p className="text-sm text-muted-foreground">Recommended size: 600x400px</p> */}
+                    <p className="text-sm text-muted-foreground">Recommended size: 600x400px</p>
                     {uploading && <p>Uploading...</p>}
                   </div>
                 </div>

@@ -4,8 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { EventCard } from "@/components/EventCard";
 import { EventCardSkeleton } from "@/components/EventCardSkeleton";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Star, Clock } from "lucide-react"; // Added Star
-import { Separator } from "@/components/ui/separator"; // Added Separator
+import { Calendar, Star, Clock } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 interface Event {
   id: string;
@@ -16,7 +16,8 @@ interface Event {
   location: string;
   image_url?: string;
   is_upcoming: boolean;
-  registration_link?: string; // ADDED
+  swd_link?: string; // ADDED
+  unifest_link?: string; // ADDED
 }
 
 // Helper function to format time (if you don't have it globally)
@@ -32,26 +33,26 @@ const formatTime = (timeString: string | null | undefined): string => {
 };
 
 
-export default function AllEvents() { // Renamed component
-  const [allEvents, setAllEvents] = useState<Event[]>([]); // State to hold all events
+export default function AllEvents() {
+  const [allEvents, setAllEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchAllEvents(); // Changed function name
+    fetchAllEvents();
   }, []);
 
-  const fetchAllEvents = async () => { // Changed function name
+  const fetchAllEvents = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from("events")
-        .select("id, title, description, date, time, location, image_url, is_upcoming, registration_link") // UPDATED select
-        .order("date", { ascending: false }); // Keep ordering, newest first overall
+        .select("id, title, description, date, time, location, image_url, is_upcoming, swd_link, unifest_link") // UPDATED select
+        .order("date", { ascending: false });
 
       if (error) throw error;
       setAllEvents(data || []);
     } catch (error) {
-      console.error("Error fetching all events:", error); // Updated error message
+      console.error("Error fetching all events:", error);
     } finally {
       setLoading(false);
     }
@@ -61,14 +62,14 @@ export default function AllEvents() { // Renamed component
   const { upcomingEvents, pastEvents } = useMemo(() => {
     const upcoming = allEvents
         .filter(event => event.is_upcoming)
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // Sort upcoming ascending by date
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     const past = allEvents
-        .filter(event => !event.is_upcoming); // Already sorted descending by date
+        .filter(event => !event.is_upcoming);
     return { upcomingEvents: upcoming, pastEvents: past };
   }, [allEvents]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-slate-900 dark:via-purple-950 dark:to-slate-900 p-4 md:p-8 pt-24"> {/* Adjusted background */}
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-slate-900 dark:via-purple-950 dark:to-slate-900 p-4 md:p-8 pt-24">
       <div className="container pt-10 mx-auto space-y-12">
         <div className="text-center space-y-4">
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
@@ -98,14 +99,14 @@ export default function AllEvents() { // Renamed component
                   <EventCard
                     key={event.id}
                     title={event.title}
-                    // Format date more clearly for upcoming
                     date={new Date(event.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                     time={formatTime(event.time)}
                     location={event.location}
                     description={event.description}
                     type="Upcoming"
                     image={event.image_url}
-                    registration_link={event.registration_link} // ADDED
+                    swd_link={event.swd_link} // ADDED
+                    unifest_link={event.unifest_link} // ADDED
                   />
                 ))}
               </div>
@@ -135,13 +136,14 @@ export default function AllEvents() { // Renamed component
                   <EventCard
                     key={event.id}
                     title={event.title}
-                    date={new Date(event.date).toLocaleDateString()} // Simpler date format for past
+                    date={new Date(event.date).toLocaleDateString()}
                     time={formatTime(event.time)}
                     location={event.location}
                     description={event.description}
                     type="Past Event"
                     image={event.image_url}
-                    registration_link={event.registration_link} // ADDED (will be ignored by card logic)
+                    swd_link={event.swd_link} // ADDED
+                    unifest_link={event.unifest_link} // ADDED
                   />
                 ))}
               </div>

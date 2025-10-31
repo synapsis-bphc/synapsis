@@ -1,4 +1,5 @@
 // src/pages/Index.tsx
+// Website by Ranjit Choudhary
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,10 +28,16 @@ import { Link } from "react-router-dom";
 
 // Helper function to format time (if you don't have it globally)
 const formatTime = (timeString: string | null | undefined): string => {
-  if (!timeString) return '';
+  if (!timeString || !timeString.includes(':')) return ''; // More robust check
   const [hours, minutes] = timeString.split(':');
   const h = parseInt(hours, 10);
   const m = parseInt(minutes, 10);
+
+  if (isNaN(h) || isNaN(m)) {
+    console.warn('Invalid time string parsed:', timeString);
+    return timeString;
+  }
+  
   const ampm = h >= 12 ? 'PM' : 'AM';
   const formattedHours = h % 12 || 12;
   const formattedMinutes = m < 10 ? '0' + m : m;
@@ -78,7 +85,7 @@ const CurrentMembersDisplay = ({ members }: { members: any[] }) => {
           )}
           <div className="text-center">
             <Button variant="outline" onClick={() => setShowAll(!showAll)} className="flex items-center gap-2 mx-auto">
-              {showAll ? (<>Show Less <ChevronUp className="h-4 w-4" /></>) : (<>Show All Members  <ChevronDown className="h-4 w-4" /></>)}
+              {showAll ? (<>Show Less <ChevronUp className="h-4 w-4" /></>) : (<>Show All Members <ChevronDown className="h-4 w-4" /></>)}
             </Button>
           </div>
         </>
@@ -94,37 +101,11 @@ const Index = () => {
   const [upcomingDatabaseEvents, setUpcomingDatabaseEvents] = useState<any[]>([]);
   const [galleryDatabaseItems, setGalleryDatabaseItems] = useState<any[]>([]);
   const [recentOpportunities, setRecentOpportunities] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true); // Added loading state
 
   useEffect(() => {
     const fetchDatabaseData = async () => {
-      const CACHE_KEY = 'homePageData';
-
-      try {
-        const { data: metaData, error: metaError } = await supabase
-          .from('metadata')
-          .select('last_updated')
-          .single();
-
-        if (metaError) throw metaError;
-        const serverLastUpdated = new Date(metaData.last_updated).getTime();
-
-        const cachedData = localStorage.getItem(CACHE_KEY);
-        if (cachedData) {
-          const { timestamp, data } = JSON.parse(cachedData);
-
-          if (timestamp >= serverLastUpdated) {
-            setCurrentDatabaseMembers(data.currentDatabaseMembers || []);
-            setUpcomingDatabaseLectures(data.upcomingDatabaseLectures || []);
-            setUpcomingDatabaseEvents(data.upcomingDatabaseEvents || []);
-            setGalleryDatabaseItems(data.galleryDatabaseItems || []);
-            setRecentOpportunities(data.recentOpportunities || []);
-            return;
-          }
-        }
-      } catch (error) {
-        console.error("Error checking cache or metadata:", error);
-      }
-
+      setLoading(true); // Set loading to true
       try {
         const today = new Date().toISOString().split("T")[0];
 
@@ -137,10 +118,18 @@ const Index = () => {
         ] = await Promise.all([
           supabase.from("members").select("id, name, position, year, photo_url, linkedin_url, bio, member_id, instagram_url").eq("is_current", true),
           supabase.from("lectures").select("id, topic, speaker, speaker_title, speaker_photo_url, speaker_profile_url, date, time, location, description, type, image_url").gte("date", today).eq("is_upcoming", true).order("date"),
-          supabase.from("events").select("id, title, date, time, location, description, image_url").gte("date", today).eq("is_upcoming", true).order("date"),
+          supabase.from("events").select("id, title, date, time, location, description, image_url, swd_link, unifest_link").gte("date", today).eq("is_upcoming", true).order("date"),
           supabase.from("gallery").select("id, image_url, title").order("created_at", { ascending: false }).limit(6),
           supabase.from("opportunities").select("id, title, description, contact_person, contact_profile_url, prerequisites, opportunity_type, expected_team_size, application_deadline, chamber_number, available_date, available_time").eq("is_active", true).order("created_at", { ascending: false }).limit(3)
         ]);
+
+        // Handle errors individually if needed, or Promise.all will catch any
+        if (membersResponse.error) throw membersResponse.error;
+        if (lecturesResponse.error) throw lecturesResponse.error;
+        if (eventsResponse.error) throw eventsResponse.error;
+        if (galleryResponse.error) throw galleryResponse.error;
+        if (opportunitiesResponse.error) throw opportunitiesResponse.error;
+
 
         let filteredMembers: any[] = [];
         if (membersResponse.data) {
@@ -149,42 +138,26 @@ const Index = () => {
             setCurrentDatabaseMembers(filteredMembers);
         }
 
-        const lecturesData = lecturesResponse.data || [];
-        const eventsData = eventsResponse.data || [];
-        const galleryData = galleryResponse.data || [];
-        const opportunitiesData = opportunitiesResponse.data || [];
-
-        setUpcomingDatabaseLectures(lecturesData);
-        setUpcomingDatabaseEvents(eventsData);
-        setGalleryDatabaseItems(galleryData);
-        setRecentOpportunities(opportunitiesData);
-
-        try {
-            const { data: metaData } = await supabase.from('metadata').select('last_updated').single();
-            const serverLastUpdated = new Date(metaData!.last_updated).getTime();
-
-            const dataToCache = {
-                timestamp: serverLastUpdated,
-                data: {
-                currentDatabaseMembers: filteredMembers,
-                upcomingDatabaseLectures: lecturesData,
-                upcomingDatabaseEvents: eventsData,
-                galleryDatabaseItems: galleryData,
-                recentOpportunities: opportunitiesData,
-                },
-            };
-            localStorage.setItem(CACHE_KEY, JSON.stringify(dataToCache));
-        } catch (error) {
-          console.error("Error writing to cache:", error);
-        }
+        setUpcomingDatabaseLectures(lecturesResponse.data || []);
+        setUpcomingDatabaseEvents(eventsResponse.data || []);
+        setGalleryDatabaseItems(galleryResponse.data || []);
+        setRecentOpportunities(opportunitiesResponse.data || []);
 
       } catch (error) {
         console.error("Error fetching database data:", error);
+        // You could set an error state here to show a user-friendly message
+      } finally {
+        setLoading(false); // Set loading to false
       }
     };
 
     fetchDatabaseData();
   }, []);
+
+  // Show a simple loading state
+  if (loading) {
+     return <div className="min-h-screen w-full flex items-center justify-center pt-24">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -219,40 +192,8 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
         </div>
       </section>
 
-      {/* Opportunities Section */}
-      {/* <section id="opportunities" className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center text-center md:text-left mb-12">
-            <div>
-              <h2 className="text-4xl font-bold mb-2 text-foreground">Latest Projects</h2>
-              <p className="text-lg text-muted-foreground">Find projects, internships, and more.</p>
-            </div>
-            <Link to="/projects" className="mt-4 md:mt-0">
-              <Button size="lg" className="bg-gray-800 text-white hover:bg-gray-700">View All Projects</Button>
-            </Link>
-          </div>
-          {recentOpportunities.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recentOpportunities.map((op) => (
-                <OpportunityCard
-                  key={op.id}
-                  title={op.title}
-                  description={op.description}
-                  contactPerson={op.contact_person}
-                  contactProfileUrl={op.contact_profile_url}
-                  prerequisites={op.prerequisites}
-                  opportunityType={op.opportunity_type}
-                  teamSize={op.expected_team_size}
-                  deadline={op.application_deadline}
-                  chamberNumber={op.chamber_number}
-                  available_date={op.available_date}
-                  available_time={op.available_time}
-                />
-              ))}
-            </div>
-          ) : (<div className="text-center text-muted-foreground py-16"><p>No active projects yet! 🚧</p></div>)}
-        </div>
-      </section> */}
+      {/* Opportunities Section (Currently Commented) */}
+      {/* <section id="opportunities" className="py-20"> ... </section> */}
 
       {/* Upcoming Lectures Section */}
       <section id="lectures" className="py-20 bg-muted/30">
@@ -299,7 +240,6 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
             </Link>
           </div>
           {upcomingDatabaseEvents.length > 0 ? (
-             // UPDATED CLASS HERE
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {upcomingDatabaseEvents.map((event) => (
                 <EventCard
@@ -309,8 +249,10 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
                     time={formatTime(event.time)} // Use formatTime here
                     location={event.location}
                     description={event.description}
-                    type="Upcoming" // Changed type
-                    image={event.image_url} // Removed fallback here, handled in EventCard
+                    type="Upcoming"
+                    image={event.image_url}
+                    swd_link={event.swd_link}
+                    unifest_link={event.unifest_link}
                 />
               ))}
             </div>
@@ -386,15 +328,11 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
           <div className="grid md:grid-cols-3 gap-8">
             <div>
               <h3 className="text-2xl font-bold mb-4">Synapsis</h3>
-              {/* <ul className="space-y-2 text-primary-foreground/80"> */}
-                {/* <li><a href="https://synapsis-chat.vercel.app/" className="hover:text-primary-foreground transition-colors">Chat</a></li> */}
-              {/* </ul> */}
               <a className="text-lg font-semibold mb-4" href="mailto:bios@hyderabad.bits-pilani.ac.in">Feedback</a>
             </div>
             <div>
               <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
               <ul className="space-y-2 text-primary-foreground/80">
-                {/* <li><a href="/projects" className="hover:text-primary-foreground transition-colors">All Projects</a></li> */}
                 <li><a href="/seminars" className="hover:text-primary-foreground transition-colors">All Seminars</a></li>
                 <li><a href="/events" className="hover:text-primary-foreground transition-colors">All Events</a></li>
                 <li><a href="/all-members" className="hover:text-primary-foreground transition-colors">All Members</a></li>
@@ -417,3 +355,4 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
 };
 
 export default Index;
+
