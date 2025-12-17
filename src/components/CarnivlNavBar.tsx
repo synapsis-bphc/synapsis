@@ -10,6 +10,7 @@ import {
   Podcast,
   Images,
   Briefcase,
+  BookMarked,
   Menu,
 } from "lucide-react";
 import {
@@ -32,6 +33,7 @@ const items = [
   { title: "Events", url: "#events", icon: Calendar, type: "anchor" },
   { title: "Members", url: "#members", icon: Users, type: "anchor" },
   { title: "Gallery", url: "#gallery", icon: Images, type: "anchor" },
+  { title: "Resources", url: "/resources", icon: BookMarked, type: "route" },
   { title: "Admin", url: "/admin", icon: Shield, type: "route" },
 ];
 

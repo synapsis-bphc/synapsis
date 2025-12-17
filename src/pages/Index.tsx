@@ -11,11 +11,8 @@ import {
 import { DatabaseMemberCard } from "@/components/DatabaseMemberCard";
 import { EventCard } from "@/components/EventCard";
 import { FeaturedSeminarCard } from "@/components/FeaturedSeminarCard";
-import { OpportunityCard } from "@/components/OpportunityCard";
 import {
   Instagram,
-  Users,
-  Calendar,
   Dna,
   Microscope,
   Brain,
@@ -26,9 +23,9 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 
-// Helper function to format time (if you don't have it globally)
+// Helper function to format time
 const formatTime = (timeString: string | null | undefined): string => {
-  if (!timeString || !timeString.includes(':')) return ''; // More robust check
+  if (!timeString || !timeString.includes(':')) return ''; 
   const [hours, minutes] = timeString.split(':');
   const h = parseInt(hours, 10);
   const m = parseInt(minutes, 10);
@@ -100,12 +97,31 @@ const Index = () => {
   const [upcomingDatabaseLectures, setUpcomingDatabaseLectures] = useState<any[]>([]);
   const [upcomingDatabaseEvents, setUpcomingDatabaseEvents] = useState<any[]>([]);
   const [galleryDatabaseItems, setGalleryDatabaseItems] = useState<any[]>([]);
-  const [recentOpportunities, setRecentOpportunities] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true); // Added loading state
+  const [loading, setLoading] = useState(true);
+
+  // Custom Slideshow State
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  // Images for the hero background
+  const heroImages = [
+    "/hero-1.jpg", 
+    "/hero-2.jpg", 
+    "/hero-3.jpg"
+  ]; 
+
+  // Auto-play effect
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
+    }, 4000); // Change slide every 4 seconds
+
+    return () => clearInterval(intervalId);
+  }, []); // Run once on mount
+
 
   useEffect(() => {
     const fetchDatabaseData = async () => {
-      setLoading(true); // Set loading to true
+      setLoading(true);
       try {
         const today = new Date().toISOString().split("T")[0];
 
@@ -114,22 +130,17 @@ const Index = () => {
           lecturesResponse,
           eventsResponse,
           galleryResponse,
-          opportunitiesResponse
         ] = await Promise.all([
           supabase.from("members").select("id, name, position, year, photo_url, linkedin_url, bio, member_id, instagram_url").eq("is_current", true),
           supabase.from("lectures").select("id, topic, speaker, speaker_title, speaker_photo_url, speaker_profile_url, date, time, location, description, type, image_url").gte("date", today).eq("is_upcoming", true).order("date"),
           supabase.from("events").select("id, title, date, time, location, description, image_url, swd_link, unifest_link").gte("date", today).eq("is_upcoming", true).order("date"),
           supabase.from("gallery").select("id, image_url, title").order("created_at", { ascending: false }).limit(6),
-          supabase.from("opportunities").select("id, title, description, contact_person, contact_profile_url, prerequisites, opportunity_type, expected_team_size, application_deadline, chamber_number, available_date, available_time").eq("is_active", true).order("created_at", { ascending: false }).limit(3)
         ]);
 
-        // Handle errors individually if needed, or Promise.all will catch any
         if (membersResponse.error) throw membersResponse.error;
         if (lecturesResponse.error) throw lecturesResponse.error;
         if (eventsResponse.error) throw eventsResponse.error;
         if (galleryResponse.error) throw galleryResponse.error;
-        if (opportunitiesResponse.error) throw opportunitiesResponse.error;
-
 
         let filteredMembers: any[] = [];
         if (membersResponse.data) {
@@ -141,20 +152,17 @@ const Index = () => {
         setUpcomingDatabaseLectures(lecturesResponse.data || []);
         setUpcomingDatabaseEvents(eventsResponse.data || []);
         setGalleryDatabaseItems(galleryResponse.data || []);
-        setRecentOpportunities(opportunitiesResponse.data || []);
 
       } catch (error) {
         console.error("Error fetching database data:", error);
-        // You could set an error state here to show a user-friendly message
       } finally {
-        setLoading(false); // Set loading to false
+        setLoading(false);
       }
     };
 
     fetchDatabaseData();
   }, []);
 
-  // Show a simple loading state
   if (loading) {
      return <div className="min-h-screen w-full flex items-center justify-center pt-24">Loading...</div>;
   }
@@ -162,13 +170,38 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section id="home" className="relative h-screen flex items-center justify-end hero-section">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="home" className="relative h-screen flex items-center justify-end overflow-hidden">
+        
+        {/* Full Screen Background Slideshow */}
+        <div className="absolute inset-0 z-0">
+          {heroImages.map((image, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
+                index === currentImageIndex ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              {/* object-cover ensures it zooms to cover the entire screen */}
+              <img
+                src={image}
+                alt={`Campus view ${index + 1}`}
+                className="w-full h-full object-cover object-center"
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Overlay: Balanced dark overlay for text readability */}
+        <div className="absolute inset-0 z-10 bg-black/40" />
+
+        {/* Hero Content */}
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
           <div className="w-full flex justify-end">
             <div className="max-w-2xl text-right">
-              <h1 className="text-5xl md:text-7xl font-bold mb-6 text-foreground" style={{ color: "#0f172a" }}>Synapsis</h1>
-              <p className="text-xl md:text-2xl mb-8 text-muted-foreground">Bridging Biology & Technology</p>
-              <p className="text-lg mb-12 text-foreground/80" style={{ color: "#0f172a" }}>
+              {/* White text with shadow for maximum readability */}
+              <h1 className="text-5xl md:text-7xl font-bold mb-6 text-white drop-shadow-xl">Synapsis</h1>
+              <p className="text-xl md:text-2xl mb-8 text-gray-100 drop-shadow-lg">Bridging Biology & Technology</p>
+              <p className="text-lg mb-12 text-gray-50 drop-shadow-md">
                 Synapsis, the official student association for Biological Science at BITS Pilani, Hyderabad Campus, where we explore the intersection of biology and technology.
               </p>
             </div>
@@ -182,7 +215,8 @@ const Index = () => {
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-4xl font-bold mb-8 text-foreground">About Synapsis</h2>
             <p className="text-lg text-muted-foreground mb-12  md:text-left">
-Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad Campus, is a student-driven initiative supported by the Department of Biological Sciences. We inspire undergraduates, postgraduates, and PhDs toward STEM research through lectures, flagship events, and activities like the Synapsis Lecture Series . Our efforts foster scientific curiosity, interdisciplinary innovation, and vibrant outreach within the department.            </p>
+              Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad Campus, is a student-driven initiative supported by the Department of Biological Sciences. We inspire undergraduates, postgraduates, and PhDs toward STEM research through lectures, flagship events, and activities like the Synapsis Lecture Series. Our efforts foster scientific curiosity, interdisciplinary innovation, and vibrant outreach within the department.
+            </p>
             <div className="grid md:grid-cols-3 gap-8">
               <Card><CardHeader><Microscope className="h-12 w-12 text-primary mx-auto mb-4" /><CardTitle>20+ Active Members</CardTitle></CardHeader><CardContent><p className="text-muted-foreground">Students from Biology, Computer Science, and related fields</p></CardContent></Card>
               <Card><CardHeader><Brain className="h-12 w-12 text-primary mx-auto mb-4" /><CardTitle>Weekly Seminars</CardTitle></CardHeader><CardContent><p className="text-muted-foreground">Talks on Ongoing computational biology and bioinformatics research</p></CardContent></Card>
@@ -191,9 +225,6 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
           </div>
         </div>
       </section>
-
-      {/* Opportunities Section (Currently Commented) */}
-      {/* <section id="opportunities" className="py-20"> ... </section> */}
 
       {/* Upcoming Lectures Section */}
       <section id="lectures" className="py-20 bg-muted/30">
@@ -219,7 +250,7 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
                   speakerProfileUrl={lecture.speaker_profile_url}
                   description={lecture.description}
                   date={lecture.date}
-                  time={formatTime(lecture.time)} // Use formatTime here
+                  time={formatTime(lecture.time)}
                   venue={lecture.location}
                 />
               ))}
@@ -246,7 +277,7 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
                     key={event.id}
                     title={event.title}
                     date={new Date(event.date).toLocaleDateString()}
-                    time={formatTime(event.time)} // Use formatTime here
+                    time={formatTime(event.time)}
                     location={event.location}
                     description={event.description}
                     type="Upcoming"
@@ -355,4 +386,3 @@ Synapsis, the official Biological Sciences Association of BITS Pilani Hyderabad 
 };
 
 export default Index;
-
