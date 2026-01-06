@@ -1,7 +1,7 @@
 // src/components/ResourceCard.tsx
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Folder, FolderOpen, Calendar, User } from "lucide-react";
+import { ExternalLink, Folder, FolderOpen, Calendar, User, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 interface ResourceProps {
@@ -10,10 +10,21 @@ interface ResourceProps {
   link: string;
   author: string;
   year: string;
-  semester: string;
+  semester?: string;
+  canDelete?: boolean;
+  onDelete?: () => void;
 }
 
-export function ResourceCard({ title, description, link, author, year, semester }: ResourceProps) {
+export function ResourceCard({
+  title,
+  description,
+  link,
+  author,
+  year,
+  semester,
+  canDelete = false,
+  onDelete,
+}: ResourceProps) {
   // State now tracks hovering of the BUTTON only, not the card
   const [isButtonHovered, setIsButtonHovered] = useState(false);
 
@@ -34,9 +45,10 @@ export function ResourceCard({ title, description, link, author, year, semester 
               {title}
             </CardTitle>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-               <span className="flex items-center gap-1">
-                 <Calendar className="w-3 h-3" /> {year} • {semester}
-               </span>
+              <span className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" /> {year}
+                {semester ? ` • ${semester}` : null}
+              </span>
             </div>
           </div>
         </div>
@@ -51,23 +63,35 @@ export function ResourceCard({ title, description, link, author, year, semester 
       </CardContent>
 
       <CardFooter className="pt-0 pb-4 px-6 flex items-center justify-between border-t border-border/40 bg-muted/5 mt-auto h-14">
-        <div className="flex items-center text-xs text-muted-foreground">
-          <User className="w-3.5 h-3.5 mr-1.5 opacity-70" />
+        <div className="flex items-center text-xs text-muted-foreground gap-2">
+          <User className="w-3.5 h-3.5 opacity-70" />
           <span className="font-medium truncate max-w-[120px]">{author}</span>
         </div>
         
-        {/* Hover Logic Moved Directly to Button */}
-        <Button 
-          size="sm" 
-          variant="outline"
-          className={`h-8 gap-1.5 text-xs font-medium transition-colors ${isButtonHovered ? 'bg-primary text-primary-foreground border-primary' : ''}`}
-          onMouseEnter={() => setIsButtonHovered(true)}
-          onMouseLeave={() => setIsButtonHovered(false)}
-          onClick={() => window.open(link, '_blank')}
-        >
-          Open Folder
-          <ExternalLink className="w-3 h-3" />
-        </Button>
+        <div className="flex items-center gap-2">
+          {canDelete && onDelete && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+              onClick={onDelete}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          )}
+          {/* Hover Logic Moved Directly to Button */}
+          <Button 
+            size="sm" 
+            variant="outline"
+            className={`h-8 gap-1.5 text-xs font-medium transition-colors ${isButtonHovered ? 'bg-primary text-primary-foreground border-primary' : ''}`}
+            onMouseEnter={() => setIsButtonHovered(true)}
+            onMouseLeave={() => setIsButtonHovered(false)}
+            onClick={() => window.open(link, '_blank')}
+          >
+            Open Folder
+            <ExternalLink className="w-3 h-3" />
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

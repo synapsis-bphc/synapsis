@@ -195,39 +195,30 @@ export type Database = {
           user_id: string
           title: string
           description: string | null
-          storage_path: string
-          original_name: string
-          file_type: string | null
-          file_size: number | null
-          signed_url: string | null
+          link: string
+          owner_name: string
+          year: string
           created_at: string
-          updated_at: string
         }
         Insert: {
           id?: string
           user_id: string
           title: string
           description?: string | null
-          storage_path: string
-          original_name: string
-          file_type?: string | null
-          file_size?: number | null
-          signed_url?: string | null
+          link: string
+          owner_name: string
+          year: string
           created_at?: string
-          updated_at?: string
         }
         Update: {
           id?: string
           user_id?: string
           title?: string
           description?: string | null
-          storage_path?: string
-          original_name?: string
-          file_type?: string | null
-          file_size?: number | null
-          signed_url?: string | null
+          link?: string
+          owner_name?: string
+          year?: string
           created_at?: string
-          updated_at?: string
         }
         Relationships: [
           {
