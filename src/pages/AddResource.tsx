@@ -47,24 +47,6 @@ const AddResource = () => {
     return () => listener?.subscription.unsubscribe();
   }, []);
 
-  // Auto-fill name from Google email (before the @) when session becomes available
-  useEffect(() => {
-    if (session?.user?.email && !name) {
-      const email = session.user.email;
-      const rawName = email.split("@")[0] || "";
-      // Simple formatting: replace dots/underscores with spaces and title-case words
-      const formatted = rawName
-        .replace(/[._]+/g, " ")
-        .split(" ")
-        .filter(Boolean)
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-        .join(" ");
-      if (formatted) {
-        setName(formatted);
-      }
-    }
-  }, [session, name]);
-
   const handleGoogleSignIn = async () => {
     setAuthError(null);
     setCheckingSession(true);
