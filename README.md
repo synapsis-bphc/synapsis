@@ -3,6 +3,33 @@
 Website for **Synapsis**, the Biology & Technology club of BITS Pilani, Hyderabad Campus.  
 Live at: **[synapsis-bphc.vercel.app](https://synapsis-bphc.vercel.app)**
 
+> 🚀 **Deployed on Vercel** — the Vercel project is managed under the club email **bios@hyderabad.bits-pilani.ac.in**. Contact any senior member or log in with that account to access deployment settings, environment variables, and domain configuration.
+
+---
+
+## Deployment
+
+The site is deployed on **Vercel** and is live at **[synapsis-bphc.vercel.app](https://synapsis-bphc.vercel.app)**.
+
+- Every push to `main` triggers a new deployment automatically.
+- A `vercel.json` file handles SPA routing (all routes rewrite to `index.html`).
+- The Vercel project is owned and accessible via the club email **bios@hyderabad.bits-pilani.ac.in**.
+- To manage deployments, environment variables, or domain settings — log in to [vercel.com](https://vercel.com) with the club email.
+
+---
+
+## Authentication Notes
+
+### Google OAuth
+Google Sign-In for the admin portal is configured via **Google Cloud Console** using the club email:
+
+> **bios@hyderabad.bits-pilani.ac.in**
+
+If you need to update OAuth redirect URIs, authorised domains, or client credentials, log in to [console.cloud.google.com](https://console.cloud.google.com) with that account.
+
+### Supabase Auth
+Email/password login is managed through the Supabase dashboard. Role assignments are stored in the `user_roles` table and checked server-side via RLS policies.
+
 ---
 
 ## What's Inside
@@ -102,26 +129,6 @@ npm run lint       # Run ESLint
 
 ---
 
-## Authentication Notes
-
-### Google OAuth
-Google Sign-In for the admin portal is configured via **Google Cloud Console** using the club email:
-
-> **bios@hyderabad.bits-pilani.ac.in**
-
-If you need to update OAuth redirect URIs, authorised domains, or client credentials, log in to [console.cloud.google.com](https://console.cloud.google.com) with that account.
-
-### Supabase Auth
-Email/password login is managed through the Supabase dashboard. Role assignments are stored in the `user_roles` table and checked server-side via RLS policies.
-
----
-
-## Deployment
-
-The site is deployed on **Vercel**. Every push to `main` triggers a new deployment automatically.  
-A `vercel.json` file handles SPA routing (all routes rewrite to `index.html`).
-
----
 
 ## Database (Supabase)
 
