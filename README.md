@@ -1,7 +1,7 @@
 # Synapsis — Official Website
 
 Website for **Synapsis**, the Biology & Technology club of BITS Pilani, Hyderabad Campus.  
-Live at: **[synapsis-bphc.vercel.app]**,**(https://synapsis-bphc.vercel.app)**
+Live at: **[https://synapsis-site.vercel.app/]**,**[https://synapsis-bphc.vercel.app]**
 
 > 🚀 **Deployed on Vercel** — the Vercel project is managed under the club email **bios@hyderabad.bits-pilani.ac.in**. Contact any senior member or log in with that account to access deployment settings, environment variables, and domain configuration.
 
