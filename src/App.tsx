@@ -19,7 +19,7 @@ const AdminPortal = lazy(() => import("./pages/AdminPortal"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Projects = lazy(() => import("./pages/Projects"));
 const Resources = lazy(() => import("./pages/Resources"));
-const AddResource = lazy(() => import("./pages/AddResource"));
+const Gallery = lazy(() => import("./pages/Gallery"));
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -91,7 +91,7 @@ const App = () => {
                     <Route path="/projects" element={<Projects />} />
                     <Route path="/admin" element={<AdminPortal />} />
                     <Route path="/resources" element={<Resources />} />
-                    <Route path="/resources/add" element={<AddResource />} />
+                    <Route path="/gallery" element={<Gallery />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>

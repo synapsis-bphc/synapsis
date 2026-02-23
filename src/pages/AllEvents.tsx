@@ -1,5 +1,5 @@
 // src/pages/AllEvents.tsx
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { EventCard } from "@/components/EventCard";
 import { EventCardSkeleton } from "@/components/EventCardSkeleton";
@@ -33,9 +33,14 @@ const formatTime = (timeString: string | null | undefined): string => {
 };
 
 
+const INITIAL_PAST = 4;
+const BATCH_PAST = 4;
+
 export default function AllEvents() {
   const [allEvents, setAllEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [visiblePastCount, setVisiblePastCount] = useState(INITIAL_PAST);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     fetchAllEvents();
@@ -67,6 +72,27 @@ export default function AllEvents() {
         .filter(event => !event.is_upcoming);
     return { upcomingEvents: upcoming, pastEvents: past };
   }, [allEvents]);
+
+  const visiblePastEvents = pastEvents.slice(0, visiblePastCount);
+  const hasMorePast = visiblePastCount < pastEvents.length;
+
+  // IntersectionObserver for past events
+  const handleIntersect = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      if (entries[0].isIntersecting) {
+        setVisiblePastCount((prev) => Math.min(prev + BATCH_PAST, pastEvents.length));
+      }
+    },
+    [pastEvents.length]
+  );
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || loading) return;
+    const observer = new IntersectionObserver(handleIntersect, { rootMargin: "200px" });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [handleIntersect, loading]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-slate-900 dark:via-purple-950 dark:to-slate-900 p-4 md:p-8 pt-24">
@@ -132,7 +158,7 @@ export default function AllEvents() {
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {pastEvents.map((event) => (
+                {visiblePastEvents.map((event) => (
                   <EventCard
                     key={event.id}
                     title={event.title}
@@ -142,10 +168,20 @@ export default function AllEvents() {
                     description={event.description}
                     type="Past Event"
                     image={event.image_url}
-                    swd_link={event.swd_link} // ADDED
-                    unifest_link={event.unifest_link} // ADDED
+                    swd_link={event.swd_link}
+                    unifest_link={event.unifest_link}
                   />
                 ))}
+              </div>
+            )}
+            {/* Sentinel for lazy loading more past events */}
+            {!loading && <div ref={sentinelRef} className="h-4" />}
+            {!loading && hasMorePast && (
+              <div className="flex justify-center py-4">
+                <div className="flex gap-2 items-center text-gray-400 text-sm">
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                  Loading more events…
+                </div>
               </div>
             )}
           </div>

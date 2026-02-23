@@ -1,53 +1,29 @@
 // src/pages/Resources.tsx
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ResourceCard } from "@/components/ResourceCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, FolderSearch } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
-import type { Session } from "@supabase/supabase-js";
 
-type UserResource = Tables<"user_resources">;
+// Mock Data
+const mockResources = [
+  {
+    id: 1,
+    title: "Msc. Bio + cs",
+    description: "has all data i could find till 2025",
+    link: "https://drive.google.com/drive/u/2/folders/1mQcCT4PSfHW0I4JmRYHF7EDfWcLIXJ-V",
+    author: "Ranjit Choudhary",
+    year: "2023",
+    semester: "Sem 3-6",
+  },
+];
 
 const Resources = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [resources, setResources] = useState<UserResource[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchResources = async () => {
-      setLoading(true);
-      setError(null);
-
-      const [{ data: sessionData }, { data, error }] = await Promise.all([
-        supabase.auth.getSession(),
-        supabase
-          .from("user_resources")
-          .select("*")
-          .order("created_at", { ascending: false }),
-      ]);
-
-      setSession(sessionData.session ?? null);
-
-      if (error) {
-        setError("Failed to load resources. Please try again later.");
-      } else {
-        setResources(data || []);
-      }
-      setLoading(false);
-    };
-
-    fetchResources();
-  }, []);
-
-  const filteredResources = resources.filter((res) =>
+  const filteredResources = mockResources.filter((res) =>
     res.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (res.owner_name || "").toLowerCase().includes(searchTerm.toLowerCase())
+    res.author.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -71,79 +47,45 @@ const Resources = () => {
           </div>
           
           {/* Search Bar */}
-          <div className="w-full md:w-auto flex flex-col gap-3 md:items-end">
-            <div className="w-full md:w-auto relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Filter by name or author..." 
-                className="pl-9 w-full md:w-[260px] bg-background"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Button
-              className="self-start md:self-end"
-              onClick={() => navigate("/resources/add")}
-            >
-              Add your resource
-            </Button>
+          <div className="w-full md:w-auto relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Filter by name or author..." 
+              className="pl-9 w-full md:w-[280px] bg-background"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
         </div>
 
-      {/* Grid Section */}
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground space-y-3">
-          <p className="text-lg font-medium">Loading resources...</p>
-        </div>
-      ) : error ? (
-        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground space-y-3">
-          <p className="text-lg font-medium">{error}</p>
-        </div>
-      ) : filteredResources.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredResources.map((res) => (
-            <ResourceCard
-              key={res.id}
-              title={res.title}
-              description={res.description || undefined}
-              link={res.link}
-              author={res.owner_name}
-              year={res.year}
-              semester="" // not collected from user, so leave blank
-              canDelete={!!session && session.user.id === res.user_id}
-              onDelete={async () => {
-                // extra safety: only allow if current user owns this row
-                if (!session || session.user.id !== res.user_id) return;
-                const confirmed = window.confirm("Are you sure you want to delete this resource?");
-                if (!confirmed) return;
-                const { error: deleteError } = await supabase
-                  .from("user_resources")
-                  .delete()
-                  .eq("id", res.id)
-                  .eq("user_id", session.user.id);
-                if (!deleteError) {
-                  setResources((prev) => prev.filter((r) => r.id !== res.id));
-                } else {
-                  // optional: setError or alert
-                  alert("Failed to delete resource. Please try again.");
-                }
-              }}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground space-y-3">
-          <FolderSearch className="h-10 w-10 opacity-20" />
-          <p className="text-lg font-medium">No resources found</p>
-          <Button variant="link" onClick={() => setSearchTerm("")}>Clear Filters</Button>
-        </div>
-      )}
+        {/* Grid Section */}
+        {filteredResources.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredResources.map((res) => (
+              <ResourceCard
+                key={res.id}
+                title={res.title}
+                description={res.description}
+                link={res.link}
+                author={res.author}
+                year={res.year}
+                semester={res.semester}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground space-y-3">
+            <FolderSearch className="h-10 w-10 opacity-20" />
+            <p className="text-lg font-medium">No folders found</p>
+            <Button variant="link" onClick={() => setSearchTerm("")}>Clear Filters</Button>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
-      {/* <footer className="py-6 text-center text-sm text-muted-foreground border-t border-border/40 bg-background/50">
+      <footer className="py-6 text-center text-sm text-muted-foreground border-t border-border/40 bg-background/50">
         <p>Made by Ranjit Choudhary</p>
-      </footer> */}
+      </footer>
     </div>
   );
 };

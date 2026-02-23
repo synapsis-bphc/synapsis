@@ -1,5 +1,5 @@
 // src/pages/PastLectures.tsx
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SeminarCard } from "@/components/SeminarCard"; 
 import { FeaturedSeminarCard } from "@/components/FeaturedSeminarCard"; // Import the featured card
@@ -38,10 +38,20 @@ const formatTime = (timeString: string | null | undefined): string => {
   return `${formattedHours}:${formattedMinutes} ${ampm}`;
 };
 
+const INITIAL_PAST = 6;
+const BATCH_PAST = 6;
+
 export default function PastLectures() {
   const [lectures, setLectures] = useState<Lecture[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [visiblePastCount, setVisiblePastCount] = useState(INITIAL_PAST);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // Reset visible count when search changes so all results are accessible
+  useEffect(() => {
+    setVisiblePastCount(INITIAL_PAST);
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchLectures();
@@ -76,6 +86,27 @@ export default function PastLectures() {
 
     return { upcomingLectures: upcoming, pastLectures: past };
   }, [lectures, searchTerm]);
+
+  const visiblePastLectures = pastLectures.slice(0, visiblePastCount);
+  const hasMorePast = visiblePastCount < pastLectures.length;
+
+  // IntersectionObserver for past lectures
+  const handleIntersect = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      if (entries[0].isIntersecting) {
+        setVisiblePastCount((prev) => Math.min(prev + BATCH_PAST, pastLectures.length));
+      }
+    },
+    [pastLectures.length]
+  );
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || loading) return;
+    const observer = new IntersectionObserver(handleIntersect, { rootMargin: "200px" });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [handleIntersect, loading]);
 
 
   return (
@@ -154,9 +185,9 @@ export default function PastLectures() {
                   <SeminarCardSkeleton key={index} />
                 ))}
               </div>
-            ) : pastLectures.length > 0 ? (
+            ) : visiblePastLectures.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
-                    {pastLectures.map((lecture) => (
+                    {visiblePastLectures.map((lecture) => (
                       <SeminarCard
                         key={lecture.id}
                         topic={lecture.topic}
@@ -182,6 +213,16 @@ export default function PastLectures() {
                     </p>
                     </CardContent>
                 </Card>
+            )}
+            {/* Sentinel for lazy loading more past seminars */}
+            {!loading && <div ref={sentinelRef} className="h-4" />}
+            {!loading && hasMorePast && (
+              <div className="flex justify-center py-4">
+                <div className="flex gap-2 items-center text-gray-400 text-sm">
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                  Loading more seminars…
+                </div>
+              </div>
             )}
         </div>
       </div>

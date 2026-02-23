@@ -189,47 +189,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_resources: {
-        Row: {
-          id: string
-          user_id: string
-          title: string
-          description: string | null
-          link: string
-          owner_name: string
-          year: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          title: string
-          description?: string | null
-          link: string
-          owner_name: string
-          year: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          title?: string
-          description?: string | null
-          link?: string
-          owner_name?: string
-          year?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_resources_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       user_roles: {
         Row: {
           user_id: string;

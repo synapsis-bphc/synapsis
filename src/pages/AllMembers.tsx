@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DatabaseMemberCard } from "@/components/DatabaseMemberCard";
 import { DatabaseMemberCardSkeleton } from "@/components/DatabaseMemberCardSkeleton";
@@ -40,28 +40,26 @@ const POSITIONS = [
   "PhD Representative (Graphic Designing)",
 ];
 
+const INITIAL_YEARS = 2;
+const BATCH_YEARS = 2;
+
 export default function AllMembers() {
   const [allMembers, setAllMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPosition, setSelectedPosition] = useState<string>("all");
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [visibleYears, setVisibleYears] = useState(INITIAL_YEARS);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     fetchAllMembers();
 
     const handleScroll = () => {
-      if (window.scrollY > 300) {
-        setShowBackToTop(true);
-      } else {
-        setShowBackToTop(false);
-      }
+      setShowBackToTop(window.scrollY > 300);
     };
 
     window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const fetchAllMembers = async () => {
@@ -111,13 +109,39 @@ export default function AllMembers() {
       ? allMembers
       : allMembers.filter((member) => member.position === selectedPosition);
 
-  const groupedByYear = filteredMembers.reduce((acc, member) => {
-    if (!acc[member.year]) {
-      acc[member.year] = [];
-    }
-    acc[member.year].push(member);
-    return acc;
-  }, {} as Record<number, Member[]>);
+  const sortedYearEntries = Object.entries(
+    filteredMembers.reduce((acc, member) => {
+      if (!acc[member.year]) acc[member.year] = [];
+      acc[member.year].push(member);
+      return acc;
+    }, {} as Record<number, Member[]>)
+  ).sort(([a], [b]) => Number(b) - Number(a));
+
+  // Reset visible count when filter changes so all matches are reachable
+  useEffect(() => {
+    setVisibleYears(INITIAL_YEARS);
+  }, [selectedPosition]);
+
+  // IntersectionObserver to load more year groups
+  const handleIntersect = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      if (entries[0].isIntersecting) {
+        setVisibleYears((prev) => Math.min(prev + BATCH_YEARS, sortedYearEntries.length));
+      }
+    },
+    [sortedYearEntries.length]
+  );
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || loading) return;
+    const observer = new IntersectionObserver(handleIntersect, { rootMargin: "200px" });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [handleIntersect, loading]);
+
+  const visibleEntries = sortedYearEntries.slice(0, visibleYears);
+  const hasMoreYears = visibleYears < sortedYearEntries.length;
 
   const scrollToTop = () => {
     window.scrollTo({
@@ -200,36 +224,44 @@ export default function AllMembers() {
           </div>
         ) : (
           <div className="space-y-8">
-            {Object.entries(groupedByYear)
-              .sort(([a], [b]) => Number(b) - Number(a))
-              .map(([year, members]) => (
-                <Card key={year} className="shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      Academic Year {year}
-                      <Badge variant="outline">{members.length} members</Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                      {members.map((member) => (
-                        <DatabaseMemberCard
-                          key={member.id}
-                          name={member.name}
-                          position={member.position}
-                          year={member.year}
-                          photoUrl={member.photo_url}
-                          linkedinUrl={member.linkedin_url}
-                          instagramUrl={member.instagram_url}
-                          isCurrent={member.is_current}
-                          memberId={member.member_id}
-                        />
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            {visibleEntries.map(([year, members]) => (
+              <Card key={year} className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Academic Year {year}
+                    <Badge variant="outline">{(members as Member[]).length} members</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {(members as Member[]).map((member) => (
+                      <DatabaseMemberCard
+                        key={member.id}
+                        name={member.name}
+                        position={member.position}
+                        year={member.year}
+                        photoUrl={member.photo_url}
+                        linkedinUrl={member.linkedin_url}
+                        instagramUrl={member.instagram_url}
+                        isCurrent={member.is_current}
+                        memberId={member.member_id}
+                      />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {/* Sentinel for lazy loading more year groups */}
+            <div ref={sentinelRef} className="h-4" />
+            {hasMoreYears && (
+              <div className="flex justify-center py-4">
+                <div className="flex gap-2 items-center text-gray-400 text-sm">
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                  Loading more…
+                </div>
+              </div>
+            )}
           </div>
         )}
 

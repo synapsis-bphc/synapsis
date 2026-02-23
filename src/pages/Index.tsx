@@ -19,6 +19,8 @@ import {
   ChevronDown,
   ChevronUp,
   CameraOff,
+  X,
+  ExternalLink,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -98,6 +100,7 @@ const Index = () => {
   const [upcomingDatabaseEvents, setUpcomingDatabaseEvents] = useState<any[]>([]);
   const [galleryDatabaseItems, setGalleryDatabaseItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lightboxItem, setLightboxItem] = useState<any | null>(null);
 
   // Custom Slideshow State
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -134,7 +137,7 @@ const Index = () => {
           supabase.from("members").select("id, name, position, year, photo_url, linkedin_url, bio, member_id, instagram_url").eq("is_current", true),
           supabase.from("lectures").select("id, topic, speaker, speaker_title, speaker_photo_url, speaker_profile_url, date, time, location, description, type, image_url").gte("date", today).eq("is_upcoming", true).order("date"),
           supabase.from("events").select("id, title, date, time, location, description, image_url, swd_link, unifest_link").gte("date", today).eq("is_upcoming", true).order("date"),
-          supabase.from("gallery").select("id, image_url, title").order("created_at", { ascending: false }).limit(6),
+          supabase.from("gallery").select("id, image_url, title, description").order("created_at", { ascending: false }).limit(8),
         ]);
 
         if (membersResponse.error) throw membersResponse.error;
@@ -169,6 +172,46 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Lightbox */}
+      {lightboxItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setLightboxItem(null)}
+        >
+          <div
+            className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setLightboxItem(null)}
+              className="absolute top-3 right-3 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <div className="flex-shrink-0 bg-black flex items-center justify-center max-h-[65vh]">
+              <img
+                src={lightboxItem.image_url}
+                alt={lightboxItem.title || "Gallery image"}
+                className="max-h-[65vh] w-auto object-contain"
+              />
+            </div>
+            <div className="p-4 flex items-start justify-between gap-4">
+              {lightboxItem.description && (
+                <p className="text-sm text-muted-foreground flex-1">{lightboxItem.description}</p>
+              )}
+              <a
+                href={lightboxItem.image_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0 flex items-center gap-1 text-xs text-blue-500 hover:underline"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                Open full
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Hero Section */}
       <section id="home" className="relative h-screen flex items-center justify-end overflow-hidden">
         
@@ -229,51 +272,64 @@ const Index = () => {
       {/* Upcoming Lectures Section */}
       <section id="lectures" className="py-20 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center text-center md:text-left mb-12">
-            <div>
-              <h2 className="text-4xl font-bold mb-2 text-foreground">Upcoming Seminars</h2>
-              <p className="text-lg text-muted-foreground">Expert talks on cutting-edge bioinformatics.</p>
-            </div>
-            <Link to="/seminars" className="mt-4 md:mt-0">
-              <Button size="lg" className="bg-gray-800 text-white hover:bg-gray-700">View Past Seminars</Button>
-            </Link>
-          </div>
           {upcomingDatabaseLectures.length > 0 ? (
-            <div className="grid grid-cols-1 gap-8">
-              {upcomingDatabaseLectures.map((lecture) => (
-                <FeaturedSeminarCard
-                  key={lecture.id}
-                  topic={lecture.topic}
-                  speakerName={lecture.speaker}
-                  speakerTitle={lecture.speaker_title || ''}
-                  speakerPhotoUrl={lecture.speaker_photo_url}
-                  speakerProfileUrl={lecture.speaker_profile_url}
-                  description={lecture.description}
-                  date={lecture.date}
-                  time={formatTime(lecture.time)}
-                  venue={lecture.location}
-                />
-              ))}
+            <>
+              <div className="flex flex-col md:flex-row md:justify-between md:items-center text-center md:text-left mb-12">
+                <div>
+                  <h2 className="text-4xl font-bold mb-2 text-foreground">Upcoming Seminars</h2>
+                  <p className="text-lg text-muted-foreground">Expert talks on cutting-edge bioinformatics.</p>
+                </div>
+                <Link to="/seminars" className="mt-4 md:mt-0">
+                  <Button size="lg" className="bg-gray-800 text-white hover:bg-gray-700">View Past Seminars</Button>
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 gap-8">
+                {upcomingDatabaseLectures.map((lecture) => (
+                  <FeaturedSeminarCard
+                    key={lecture.id}
+                    topic={lecture.topic}
+                    speakerName={lecture.speaker}
+                    speakerTitle={lecture.speaker_title || ''}
+                    speakerPhotoUrl={lecture.speaker_photo_url}
+                    speakerProfileUrl={lecture.speaker_profile_url}
+                    description={lecture.description}
+                    date={lecture.date}
+                    time={formatTime(lecture.time)}
+                    venue={lecture.location}
+                  />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center text-center gap-6 py-16">
+              <div>
+                <h2 className="text-4xl font-bold mb-2 text-foreground">Upcoming Seminars</h2>
+                <p className="text-lg text-muted-foreground">No upcoming seminars scheduled at the moment.</p>
+              </div>
+              <Link to="/seminars">
+                <Button size="lg" className="bg-gray-800 text-white hover:bg-gray-700">View Past Seminars</Button>
+              </Link>
             </div>
-          ) : (<div className="text-center text-muted-foreground py-16"><p>No upcoming seminars scheduled at the moment.</p></div>)}
+          )}
         </div>
       </section>
 
       {/* Events Section */}
       <section id="events" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center text-center md:text-left mb-12">
-            <div>
-              <h2 className="text-4xl font-bold mb-2 text-foreground">Upcoming Events</h2>
-            </div>
-            <Link to="/events" className="mt-4 md:mt-0">
-              <Button size="lg" className="bg-gray-800 text-white hover:bg-gray-700">View All Events</Button>
-            </Link>
-          </div>
           {upcomingDatabaseEvents.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {upcomingDatabaseEvents.map((event) => (
-                <EventCard
+            <>
+              <div className="flex flex-col md:flex-row md:justify-between md:items-center text-center md:text-left mb-12">
+                <div>
+                  <h2 className="text-4xl font-bold mb-2 text-foreground">Upcoming Events</h2>
+                </div>
+                <Link to="/events" className="mt-4 md:mt-0">
+                  <Button size="lg" className="bg-gray-800 text-white hover:bg-gray-700">View All Events</Button>
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {upcomingDatabaseEvents.map((event) => (
+                  <EventCard
                     key={event.id}
                     title={event.title}
                     date={new Date(event.date).toLocaleDateString()}
@@ -284,10 +340,19 @@ const Index = () => {
                     image={event.image_url}
                     swd_link={event.swd_link}
                     unifest_link={event.unifest_link}
-                />
-              ))}
+                  />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center text-center gap-6 py-16">
+              <h2 className="text-4xl font-bold mb-2 text-foreground">Upcoming Events</h2>
+              <p className="text-lg text-muted-foreground">No upcoming events scheduled at the moment.</p>
+              <Link to="/events">
+                <Button size="lg" className="bg-gray-800 text-white hover:bg-gray-700">View All Events</Button>
+              </Link>
             </div>
-          ) : (<div className="text-center text-muted-foreground py-16"><p>No upcoming events scheduled at the moment.</p></div>)}
+          )}
         </div>
       </section>
 
@@ -309,14 +374,23 @@ const Index = () => {
       {/* Gallery Section */}
       <section id="gallery" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12"><h2 className="text-4xl font-bold mb-4 text-foreground">Our Gallery</h2></div>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center text-center md:text-left mb-12">
+            <h2 className="text-4xl font-bold text-foreground">Our Gallery</h2>
+            <Link to="/gallery" className="mt-4 md:mt-0">
+              <Button size="lg" className="bg-gray-800 text-white hover:bg-gray-700">View Full Gallery</Button>
+            </Link>
+          </div>
 
           {galleryDatabaseItems.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {galleryDatabaseItems.map((item) => (
-                <div key={item.id} className="aspect-square overflow-hidden rounded-lg">
-                  <img src={item.image_url} alt={item.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {galleryDatabaseItems.slice(0, 8).map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setLightboxItem(item)}
+                  className="aspect-square overflow-hidden rounded-lg block group text-left"
+                >
+                  <img src={item.image_url} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                </button>
               ))}
             </div>
           ) : (
