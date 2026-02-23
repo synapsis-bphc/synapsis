@@ -94,7 +94,7 @@ Role-based admin dashboard. Login with Google or email/password.
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/<org>/synapsis.git
+git clone https://github.com/synapsis-bphc/synapsis.git
 cd synapsis
 ```
 
